@@ -21,16 +21,36 @@ def tokenize(file):
     """
     This function scan a file and return a token
     """
-    keywords = {'if', 'for', 'while', 'int', 'return', 'str'}
+    keywords = {'const', 'var', 'and', 'or', 'not', 'if', 'elif', 'else',
+                'for', 'in', 'while', 'func', 'try', 'except', 'class'}
     token_specification = [
-        ('NUMBER',   r'\d+(\.\d*)?'),  # Integer or decimal number
-        ('ASSIGN',   r'='),            # Assignment operator
-        ('ID',       r'[A-Za-z]+'),    # Identifiers
-        ('ARITH_OP', r'[+\-*/]'),      # Arithmetic operators
-        ('TAB',      r'\t'),           # Tabulations
-        ('NEWLINE',  r'\n'),           # Line endings
-        ('SKIP',     r'[ ]+'),         # Skip over spaces and tabs
-        ('MISMATCH', r'.'),            # Any other character
+        ('INTEGER', r'[0-9]+'),             # Integers
+        ('FLOAT', r'[0-9]+\.[0-9]+')        # Floats
+        ('IDENTIDIER', r'[A-Za-z_]+'),      # Identifiers
+        ('LITERAL', r'(\".*\"|\'.*\'){1}'), # Literals
+        ('PLUS_OP', r'\+'),                 # Addition operator
+        ('MIN_OP', r'-'),                   # Subtraction operator
+        ('MUL_OP', r'\*'),                  # Multiplication operator
+        ('DIV_OP', r'/'),                   # Divition operator
+        ('TIMES_OP', r'\*\*'),              # Exponentiation operator
+        ('MOD_OP', r'%'),                   # Modulus operator
+        ('ASS_OP', r'='),                   # Assignemt operator
+        ('PLUS_ASS_OP',  r'\+='),           # Addition assignment operator
+        ('MINUS_ASS_OP', r'-='),            # Subtration assignment operator
+        ('EQ_OP', r'=='),                   # Equal operator
+        ('GT_OP', r'>'),                    # Greater than operator
+        ('LT_OP', r'<'),                    # Less than operator
+        ('GT_EQ_OP', r'>='),                # Greater or equal operator
+        ('LT_EQ_OP', r'<='),                # Less or equal operator
+        ('NOT_EQ_OP', r'!='),               # Not equal operator
+        ('COLON', r':'),                    # Colon
+        ('L_PARENT', r'('),                 # Left Parenthesis
+        ('R_PARENT', r')'),                 # Right Parenthesis
+        ('TAB',      r'\t'),                # Tabulations
+        ('NEWLINE',  r'\n'),                # Line endings
+        ('COMMENT', r'(#\.*\n|/\*\.*\*/)'), # Comments
+        ('SKIP',     r'[ ]+'),              # Skip over spaces
+        ('MISMATCH', r'.'),                 # Any other character
     ]
     tok_regex = '|'.join('(?P<%s>%s)' % pair for pair in token_specification)
     line_num = 1
@@ -41,13 +61,13 @@ def tokenize(file):
         column = specification.start() - line_start
         if kind == 'NUMBER':
             value = float(value) if '.' in value else int(value)
-        elif kind == 'ID' and value in keywords:
+        elif value in keywords:
             kind = value.upper()
         elif kind == 'NEWLINE':
             line_start = specification.end()
             line_num += 1
             continue
-        elif kind == 'SKIP':
+        elif kind == 'SKIP' or kind == 'COMMENT':
             continue
         elif kind == 'MISMATCH':
             raise RuntimeError(f'{value!r} unexpected on line {line_num}')
